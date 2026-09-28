@@ -1,0 +1,63 @@
+{
+  "Selecting the Micro Case": {
+    "Case Grounding": [
+      "Real Individual",
+      "Curated Persona"
+    ],
+    "Representational Type": [
+      "Typical Case",
+      "Subgroup Case",
+      "Exceptional Case",
+      "Any Case"
+    ],
+    "Data Correspondence": [
+      "Record Linked",
+      "Attribute Matched",
+      "Contextually Related"
+    ]
+  },
+  "Constructin the Micro Narrative": {
+    "Narrative Content": [
+      "Background Attributes",
+      "Events and Actions",
+      "Personal Voice",
+      "Changing States"
+    ],
+    "Visual Representation": [
+      "Original Material",
+      "Illustrated Character",
+      "Icon",
+      "Data-encoded Figure"
+    ]
+  },
+  "Connecting Micro and Macro": {
+    "Micro-Macro Organization": [
+      "Micro-led",
+      "Macro-led",
+      "Micro-Aggregated"
+    ],
+    "Narrative Position": [
+      "Entry",
+      "Elaboration",
+      "Reflection"
+    ],
+    "Spatial Relationship": [
+      "Separated",
+      "Juxtaposed",
+      "Embedded",
+      "Layered"
+    ],
+    "Visual Linkage": [
+      "Explicit Annotation",
+      "Shared Encoding",
+      "Visual Highlighting",
+      "Connecting Marks"
+    ],
+    "Transition": [
+      "Guided Progression",
+      "Direct Selection",
+      "Hierarchical Navigation",
+      "Filtered Exploration"
+    ]
+  }
+}

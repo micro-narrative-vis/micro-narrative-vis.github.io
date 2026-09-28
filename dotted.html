@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dotted — Seeing the Big Through the Small</title>
+  <style>
+    :root {
+      --ink: #163f37;
+      --muted: #55756c;
+      --line: #d8ddd9;
+      --paper: #ffffff;
+      --panel: #ffffff;
+      --case: #82b29a;
+      --narrative: #f2cc8e;
+      --connection: #e49782;
+      --case-pale: #e3efe9;
+      --narrative-pale: #fbf1df;
+      --connection-pale: #f7ddd6;
+      --name-w: 14%;
+      --cell-w: calc(86% / 35);
+      /* --case: #4daf7e;
+      --narrative: #ebb255;
+      --connection: #ec7251; */
+      
+    }
+    
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      max-width: 1800px;
+      min-height: 78px;
+      margin: auto;
+      padding: 14px 36px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .identity { display: flex; flex-direction: column; gap: 6px; min-width: 0; color: var(--ink); text-decoration: none; }
+    .identity strong { font-size: 22px; line-height: 1.1; letter-spacing: -.02em; }
+    .identity span { color: var(--muted); font-size: 13px; }
+    .tabs { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+    .tab { padding: 8px 14px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: none; }
+    .tab:hover, .tab:focus-visible { border-color: var(--ink); outline: none; }
+    .tab.is-active { border-color: var(--ink); color: #fff; background: var(--ink); }
+
+    .page {
+      width: min(100% - 24px, 1800px);
+      margin: 12px auto 20px;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      font-size: clamp(26px, 3vw, 42px);
+      font-weight: 500;
+      letter-spacing: -.025em;
+    }
+
+    .meta {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="search"] {
+      width: 220px;
+      border: 1px solid #aeb6ba;
+      border-radius: 0;
+      background: rgba(255,255,255,.85);
+      padding: 9px 11px;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+
+    input[type="search"]:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+
+    .file-label,
+    .export-button {
+      border: 1px solid var(--ink);
+      padding: 9px 12px;
+      background: var(--ink);
+      color: white;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: normal;
+      white-space: nowrap;
+    }
+
+    .export-button {
+      border-color: #aeb6ba;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .export-button:hover { background: #eef2f0; }
+
+    #fileInput { display: none; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin: 0 0 10px;
+      color: #445058;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 10px; height: 10px; }
+
+    .matrix-shell {
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: calc(100vh - 114px);
+      border: 1px solid #aeb5b9;
+      background: var(--panel);
+      box-shadow: none;
+    }
+
+    table {
+      width: 100%;
+      min-width: 0;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+      font-size: 11px;
+    }
+
+    th, td {
+      border-right: .65px solid var(--line);
+      border-bottom: .65px solid var(--line);
+      padding: 0;
+      text-align: center;
+    }
+
+    thead th { position: sticky; z-index: 5; }
+
+    .corner {
+      width: var(--name-w);
+      padding: 0;
+      border-right: 2px solid transparent;
+      border-bottom-color: transparent;
+      background: transparent;
+      color: transparent;
+      text-align: left;
+      vertical-align: bottom;
+      font-size: 0;
+    }
+
+    .corner::after {
+      content: "CORPUS";
+      display: block;
+      width: 100%;
+      margin: 0 0 5px;
+      padding: 6px 10px 6px 20px;
+      border: .8px solid #9da2a0;
+      background: #fff;
+      color: #171b19;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      text-align: left;
+    }
+
+    .facet-row th { top: 0; height: 34px; }
+    .dimension-row th { top: 34px; height: 44px; }
+    .decision-row th { top: 78px; }
+    .corner { z-index: 9; background: #fff; }
+
+    .facet {
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      font-size: clamp(14px, 1vw, 18px);
+      font-weight: 600;
+      letter-spacing: .01em;
+      border-right: 3px solid white;
+    }
+
+    .facet.case { background: var(--case); }
+    .facet.narrative { background: var(--narrative); }
+    .facet.connection { background: var(--connection); }
+
+    .dimension {
+      padding: 5px 8px;
+      background: #f0efeb;
+      font-size: clamp(11px, .82vw, 15px);
+      line-height: 1.15;
+      border-top: 1px solid #959d99;
+      border-bottom: 1px solid #959d99;
+      border-left: 1px solid #959d99;
+      border-right: 4px solid #fff;
+      box-shadow: inset -1px 0 #959d99;
+    }
+
+    .decision {
+      width: var(--cell-w);
+      height: 135px;
+      background: #fff;
+      vertical-align: bottom;
+      text-align: center;
+    }
+
+    .decision > span {
+      display: inline-block;
+      width: 18px;
+      margin: 0 0 8px;
+      text-align: left;
+      line-height: 1.08;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: clamp(10px, .72vw, 13px);
+      font-weight: 650;
+      letter-spacing: .01em;
+    }
+
+    .group-start { border-left: 1px solid #959d99 !important; }
+    .group-end {
+      border-right: 4px solid #fff !important;
+      box-shadow: inset -1px 0 #959d99;
+    }
+
+    tbody tr { height: 20px; }
+    tbody tr:hover td { filter: brightness(.965); }
+
+    .case-name {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      width: var(--name-w);
+      max-width: 0;
+      height: 20px;
+      padding: 1px 7px;
+      border-right: 2px solid #9fa7ab;
+      background: #fff;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: clamp(10px, .75vw, 13px);
+      font-weight: 400;
+    }
+
+    .case-name .id {
+      display: inline-grid;
+      place-items: center;
+      width: 14px;
+      height: 14px;
+      margin-right: 5px;
+      border-radius: 50%;
+      background: #e9ece8;
+      color: #4d595f;
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    td.mark-cell {
+      width: var(--cell-w);
+      height: 20px;
+      line-height: 0;
+    }
+    td.mark-cell.case { background: var(--case-pale); }
+    td.mark-cell.narrative { background: var(--narrative-pale); }
+    td.mark-cell.connection { background: var(--connection-pale); }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 3px;
+      border-radius: 50%;
+      animation: settle .28s both;
+    }
+
+    .mark-cell.case .dot { background: var(--case); }
+    .mark-cell.narrative .dot { background: var(--narrative); }
+    .mark-cell.connection .dot { background: var(--connection); }
+
+    @keyframes settle {
+      from { opacity: 0; transform: scale(.35); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    tfoot th, tfoot td {
+      position: static;
+      height: 32px;
+      background: #fff;
+      font-variant-numeric: tabular-nums;
+      font-weight: 400;
+    }
+
+    tfoot th {
+      padding: 0;
+      border-right: 2px solid #9fa7ab;
+      text-align: left;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 12px;
+    }
+
+    .total-hash {
+      display: inline-block;
+      width: 26px;
+      text-align: center;
+      font-weight: 400;
+    }
+
+    tfoot td {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    tfoot td.case { color: var(--case); }
+    tfoot td.narrative { color: var(--narrative); }
+    tfoot td.connection { color: var(--connection); }
+
+    .status {
+      display: none;
+      padding: 18px;
+      border: 1px solid #b9aa82;
+      background: #fff8e6;
+      color: #62552e;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 760px) {
+      :root { --name-w: 18%; --cell-w: calc(82% / 35); }
+      .page { width: calc(100% - 16px); margin-top: 14px; }
+      .masthead { align-items: stretch; flex-direction: column; gap: 12px; }
+      .tools { width: 100%; }
+      .tools { flex-wrap: wrap; }
+      input[type="search"] { min-width: 0; flex: 1; }
+      .matrix-shell { height: calc(100vh - 145px); }
+      .site-header { align-items: flex-start; flex-direction: column; padding: 14px; }
+      .tabs { width: 100%; overflow-x: auto; }
+      .tab { padding: 7px 10px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="identity" href="index.html">
+      <strong>Seeing the Big Through the Small</strong>
+      <span>Understanding Micro Narrative Design in Data Stories for Public Issues</span>
+    </a>
+    <nav class="tabs" aria-label="Research sections">
+      <a class="tab" href="index.html">Design Space</a>
+      <a class="tab" href="corpus.html">Corpus</a>
+      <a class="tab is-active" href="dotted.html" aria-current="page">Dotted</a>
+      <button class="tab" type="button">Workshop</button>
+    </nav>
+  </header>
+  <main class="page">
+    <div id="status" class="status"></div>
+    <div id="matrix" class="matrix-shell" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const schema = [
+      {
+        name: "Selecting the Micro Case",
+        tone: "case",
+        dimensions: [
+          { name: "Case Grounding", source: "Case Grounding", values: ["Real Individual", "Curated Persona"] },
+          { name: "Representational Type", source: "Distributional Position", values: ["Typical Case", "Subgroup Case", "Exceptional Case", "Any Case"] },
+          { name: "Data Correspondence", source: "Case–Data Relationship", values: ["Record Linked", "Attribute Matched", "Contextually Related"] }
+        ]
+      },
+      {
+        name: "Constructing the Micro Narrative",
+        tone: "narrative",
+        dimensions: [
+          { name: "Narrative Content", source: "Narrative Content", values: ["Background Attributes", "Events and Actions", "Personal Voice", "Changing States"] },
+          { name: "Visual Representation", source: "Visual Representation", values: ["Original Material", "Illustrated Character", "Icon", "Data-encoded Figure"] }
+        ]
+      },
+      {
+        name: "Connecting Micro and Macro",
+        tone: "connection",
+        dimensions: [
+          { name: "Micro-Macro Organization", source: "Narrative Role", values: ["Macro-led", "Micro-led", "Micro-Aggregated"] },
+          { name: "Narrative Position", source: "Narrative Function", values: ["Entry", "Elaboration", "Reflection"] },
+          { name: "Spatial Relationship", source: "Spatial Relationship", values: ["Separated", "Embedded", "Juxtaposed", "Layered"] },
+          { name: "Visual Linkage", source: "Visual Linkage", values: ["Explicit Annotation", "Shared Encoding", "Visual Highlighting", "Connecting Marks"] },
+          { name: "Transition", source: "Transition", values: ["Guided Progression", "Direct Selection", "Filtered Exploration", "Hierarchical Navigation"] }
+        ]
+      }
+    ];
+
+    let allRows = [];
+    let visibleRows = [];
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [], field = "", quoted = false;
+      text = text.replace(/^\uFEFF/, "");
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (quoted) {
+          if (char === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (char === '"') quoted = false;
+          else field += char;
+        } else if (char === '"') quoted = true;
+        else if (char === ',') { row.push(field); field = ""; }
+        else if (char === '\n') { row.push(field.replace(/\r$/, "")); rows.push(row); row = []; field = ""; }
+        else field += char;
+      }
+      if (field.length || row.length) { row.push(field.replace(/\r$/, "")); rows.push(row); }
+      const headers = rows.shift().map(header => header.trim());
+      return rows.filter(cells => cells.some(Boolean)).map(cells =>
+        Object.fromEntries(headers.map((header, index) => [header, (cells[index] || "").trim()]))
+      );
+    }
+
+    function normalized(value) {
+      return value.trim().toLocaleLowerCase().replace(/[–—]/g, "-");
+    }
+
+    function selections(row, source) {
+      return new Set((row[source] || "").split(",").filter(Boolean).map(normalized));
+    }
+
+    function rowTitle(row) {
+      return row["title-short"] || "Untitled";
+    }
+
+    function flatColumns() {
+      return schema.flatMap(facet => facet.dimensions.flatMap(dimension =>
+        dimension.values.map((value, index) => ({
+          facet: facet.name,
+          tone: facet.tone,
+          dimension: dimension.name,
+          source: dimension.source,
+          value,
+          groupStart: index === 0,
+          groupEnd: index === dimension.values.length - 1
+        }))
+      ));
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>'"]/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+      })[char]);
+    }
+
+    function render(rows) {
+      visibleRows = rows;
+      const columns = flatColumns();
+      const colgroup = `<colgroup><col style="width:var(--name-w)">${columns.map(() =>
+        `<col style="width:var(--cell-w)">`
+      ).join("")}</colgroup>`;
+      const counts = columns.map(column => rows.reduce((sum, row) =>
+        sum + (selections(row, column.source).has(normalized(column.value)) ? 1 : 0), 0
+      ));
+
+      const facetHeaders = schema.map(facet => {
+        const span = facet.dimensions.reduce((sum, dimension) => sum + dimension.values.length, 0);
+        return `<th class="facet ${facet.tone}" colspan="${span}">${escapeHTML(facet.name)}</th>`;
+      }).join("");
+
+      const dimensionHeaders = schema.flatMap(facet => facet.dimensions.map(dimension =>
+        `<th class="dimension" colspan="${dimension.values.length}">${escapeHTML(dimension.name)}</th>`
+      )).join("");
+
+      const decisionHeaders = columns.map(column =>
+        `<th class="decision ${column.groupStart ? "group-start" : ""} ${column.groupEnd ? "group-end" : ""}" title="${escapeHTML(column.value)}"><span>${escapeHTML(column.value)}</span></th>`
+      ).join("");
+
+      const body = rows.map((row, rowIndex) => {
+        const marks = columns.map((column, columnIndex) => {
+          const present = selections(row, column.source).has(normalized(column.value));
+          return `<td class="mark-cell ${column.tone} ${column.groupStart ? "group-start" : ""} ${column.groupEnd ? "group-end" : ""}" title="${escapeHTML(rowTitle(row))} · ${escapeHTML(column.value)}">${present ? `<i class="dot" style="animation-delay:${Math.min(rowIndex * 8 + columnIndex * 2, 240)}ms"></i>` : ""}</td>`;
+        }).join("");
+        return `<tr><td class="case-name" title="${escapeHTML(rowTitle(row))}"><span class="id">${escapeHTML(row.id)}</span>${escapeHTML(rowTitle(row))}</td>${marks}</tr>`;
+      }).join("");
+
+      const totals = counts.map((count, index) =>
+        `<td class="${columns[index].tone} ${columns[index].groupStart ? "group-start" : ""} ${columns[index].groupEnd ? "group-end" : ""}">${count}</td>`
+      ).join("");
+
+      document.getElementById("matrix").innerHTML = `
+        <table aria-label="Corpus coding matrix">
+          ${colgroup}
+          <thead>
+            <tr class="facet-row"><th class="corner" rowspan="3">Cases</th>${facetHeaders}</tr>
+            <tr class="dimension-row">${dimensionHeaders}</tr>
+            <tr class="decision-row">${decisionHeaders}</tr>
+          </thead>
+          <tbody>${body || `<tr><td class="case-name">No matching cases</td></tr>`}</tbody>
+          <tfoot><tr><th><span class="total-hash">#</span><span>Total</span></th>${totals}</tr></tfoot>
+        </table>`;
+    }
+
+    function useCSV(text) {
+      allRows = parseCSV(text);
+      if (!allRows.length || !("title-short" in allRows[0])) throw new Error("The CSV does not contain a title-short field.");
+      document.getElementById("status").style.display = "none";
+      document.getElementById("matrix").style.display = "block";
+      render(allRows);
+    }
+
+    function exportMarkup() {
+      const matrix = document.getElementById("matrix");
+      const width = Math.ceil(matrix.scrollWidth);
+      const height = Math.ceil(matrix.scrollHeight);
+      const css = document.querySelector("style").textContent +
+        "\n*{animation:none!important}.matrix-shell{box-shadow:none!important}";
+      const content = matrix.outerHTML;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <foreignObject width="100%" height="100%">
+          <div xmlns="http://www.w3.org/1999/xhtml"><style>${css}</style>${content}</div>
+        </foreignObject>
+      </svg>`;
+      return { svg, width, height };
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+
+    document.getElementById("exportSVG")?.addEventListener("click", () => {
+      const { svg } = exportMarkup();
+      downloadBlob(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "dotted-corpus.svg");
+    });
+
+    function cssVariable(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function wrapCanvasText(context, text, centerX, centerY, maxWidth, lineHeight) {
+      const words = text.split(" ");
+      const lines = [];
+      let line = "";
+      words.forEach(word => {
+        const next = line ? `${line} ${word}` : word;
+        if (line && context.measureText(next).width > maxWidth) {
+          lines.push(line);
+          line = word;
+        } else line = next;
+      });
+      if (line) lines.push(line);
+      const startY = centerY - (lines.length - 1) * lineHeight / 2;
+      lines.forEach((item, index) => context.fillText(item, centerX, startY + index * lineHeight));
+    }
+
+    function buildPNGCanvas(rows) {
+      const columns = flatColumns();
+      const nameWidth = 230;
+      const cellWidth = 42;
+      const facetHeight = 42;
+      const dimensionHeight = 52;
+      const decisionHeight = 175;
+      const rowHeight = 20;
+      const totalHeight = 32;
+      const headerHeight = facetHeight + dimensionHeight + decisionHeight;
+      const width = nameWidth + columns.length * cellWidth;
+      const height = headerHeight + rows.length * rowHeight + totalHeight;
+      const scale = 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const context = canvas.getContext("2d");
+      context.scale(scale, scale);
+      context.textBaseline = "middle";
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, width, height);
+
+      const colors = {
+        case: { main: cssVariable("--case"), pale: cssVariable("--case-pale") },
+        narrative: { main: cssVariable("--narrative"), pale: cssVariable("--narrative-pale") },
+        connection: { main: cssVariable("--connection"), pale: cssVariable("--connection-pale") }
+      };
+      const lineColor = cssVariable("--line") || "#b8bcba";
+      const strokeCell = (x, y, w, h) => {
+        context.strokeStyle = lineColor;
+        context.lineWidth = .65;
+        context.strokeRect(x + .325, y + .325, w - .65, h - .65);
+      };
+
+      let x = nameWidth;
+      schema.forEach(facet => {
+        const span = facet.dimensions.reduce((sum, dimension) => sum + dimension.values.length, 0);
+        const facetWidth = span * cellWidth;
+        context.fillStyle = colors[facet.tone].main;
+        context.fillRect(x + 1, 1, facetWidth - 3, facetHeight - 2);
+        context.fillStyle = "#fff";
+        context.font = "600 17px Arial";
+        context.textAlign = "center";
+        context.fillText(facet.name, x + facetWidth / 2, facetHeight / 2);
+        x += facetWidth;
+      });
+
+      x = nameWidth;
+      schema.forEach(facet => facet.dimensions.forEach(dimension => {
+        const dimensionWidth = dimension.values.length * cellWidth;
+        context.fillStyle = "#f0efeb";
+        context.fillRect(x + 1, facetHeight + 1, dimensionWidth - 4, dimensionHeight - 2);
+        context.strokeStyle = "#959d99";
+        context.lineWidth = 1;
+        context.strokeRect(x + .5, facetHeight + .5, dimensionWidth - 4, dimensionHeight - 1);
+        context.fillStyle = "#343a3d";
+        context.font = "600 14px Arial";
+        context.textAlign = "center";
+        wrapCanvasText(context, dimension.name, x + (dimensionWidth - 3) / 2,
+          facetHeight + dimensionHeight / 2, dimensionWidth - 16, 16);
+        x += dimensionWidth;
+      }));
+
+      columns.forEach((column, index) => {
+        const cellX = nameWidth + index * cellWidth;
+        const cellY = facetHeight + dimensionHeight;
+        strokeCell(cellX, cellY, cellWidth, decisionHeight);
+        context.save();
+        context.translate(cellX + cellWidth / 2, cellY + decisionHeight - 8);
+        context.rotate(-Math.PI / 2);
+        context.fillStyle = "#343a3d";
+        context.font = "600 14px Arial";
+        context.textAlign = "left";
+        context.fillText(column.value, 0, 0);
+        context.restore();
+      });
+
+      context.fillStyle = "#fff";
+      context.fillRect(0, headerHeight - 27, nameWidth, 22);
+      context.strokeStyle = "#9da2a0";
+      context.lineWidth = .8;
+      context.strokeRect(.4, headerHeight - 26.6, nameWidth - .8, 21.2);
+      context.fillStyle = "#171b19";
+      context.font = "700 12px Arial";
+      context.textAlign = "left";
+      context.fillText("CORPUS", 26, headerHeight - 16);
+
+      rows.forEach((row, rowIndex) => {
+        const y = headerHeight + rowIndex * rowHeight;
+        context.fillStyle = "#fff";
+        context.fillRect(0, y, nameWidth, rowHeight);
+        strokeCell(0, y, nameWidth, rowHeight);
+        context.fillStyle = "#e9ece8";
+        context.beginPath();
+        context.arc(13, y + rowHeight / 2, 7, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = "#4d595f";
+        context.font = "700 8px Arial";
+        context.textAlign = "center";
+        context.fillText(row.id, 13, y + rowHeight / 2);
+        context.fillStyle = "#172027";
+        context.font = "400 12px Arial";
+        context.textAlign = "left";
+        context.fillText(rowTitle(row), 24, y + rowHeight / 2);
+
+        columns.forEach((column, columnIndex) => {
+          const cellX = nameWidth + columnIndex * cellWidth;
+          context.fillStyle = colors[column.tone].pale;
+          context.fillRect(cellX, y, cellWidth, rowHeight);
+          strokeCell(cellX, y, cellWidth, rowHeight);
+          if (selections(row, column.source).has(normalized(column.value))) {
+            context.fillStyle = colors[column.tone].main;
+            context.beginPath();
+            context.arc(cellX + cellWidth / 2, y + rowHeight / 2, 5, 0, Math.PI * 2);
+            context.fill();
+          }
+        });
+      });
+
+      const totalY = headerHeight + rows.length * rowHeight;
+      context.fillStyle = "#fff";
+      context.fillRect(0, totalY, width, totalHeight);
+      strokeCell(0, totalY, nameWidth, totalHeight);
+      context.fillStyle = "#172027";
+      context.font = "400 12px Arial";
+      context.textAlign = "center";
+      context.fillText("#", 13, totalY + totalHeight / 2);
+      context.font = "700 12px Arial";
+      context.textAlign = "left";
+      context.fillText("Total", 26, totalY + totalHeight / 2);
+      columns.forEach((column, index) => {
+        const cellX = nameWidth + index * cellWidth;
+        const count = rows.reduce((sum, row) => sum +
+          (selections(row, column.source).has(normalized(column.value)) ? 1 : 0), 0);
+        strokeCell(cellX, totalY, cellWidth, totalHeight);
+        context.fillStyle = colors[column.tone].main;
+        context.font = "700 14px Arial";
+        context.textAlign = "center";
+        context.fillText(count, cellX + cellWidth / 2, totalY + totalHeight / 2);
+      });
+
+      columns.forEach((column, index) => {
+        if (!column.groupEnd || index === columns.length - 1) return;
+        const boundary = nameWidth + (index + 1) * cellWidth;
+        const startY = facetHeight + dimensionHeight;
+        context.fillStyle = "#fff";
+        context.fillRect(boundary - 4, startY, 4, height - startY);
+        context.strokeStyle = "#959d99";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(boundary - 4.5, startY);
+        context.lineTo(boundary - 4.5, height);
+        context.moveTo(boundary + .5, startY);
+        context.lineTo(boundary + .5, height);
+        context.stroke();
+      });
+      return canvas;
+    }
+
+    function downloadCanvasPNG(canvas) {
+      const fallback = () => {
+        const link = document.createElement("a");
+        link.download = "dotted-corpus.png";
+        link.href = canvas.toDataURL("image/png");
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      };
+      if (!canvas.toBlob) return fallback();
+      canvas.toBlob(blob => blob ? downloadBlob(blob, "dotted-corpus.png") : fallback(), "image/png");
+    }
+
+    document.getElementById("exportPNG")?.addEventListener("click", () => {
+      if (!visibleRows.length) return;
+      try {
+        downloadCanvasPNG(buildPNGCanvas(visibleRows));
+      } catch (error) {
+        console.error("PNG export failed", error);
+        alert("PNG export failed. Please reload the page and select corpus.csv again.");
+      }
+    });
+
+    document.getElementById("search")?.addEventListener("input", event => {
+      const query = normalized(event.target.value);
+      render(allRows.filter(row => normalized(rowTitle(row)).includes(query) || normalized(row.id).includes(query)));
+    });
+
+    document.getElementById("fileInput")?.addEventListener("change", async event => {
+      const file = event.target.files[0];
+      if (file) useCSV(await file.text());
+    });
+
+    fetch("corpus.csv")
+      .then(response => {
+        if (!response.ok) throw new Error("Unable to load corpus.csv");
+        return response.text();
+      })
+      .then(useCSV)
+      .catch(() => {
+        document.getElementById("matrix").style.display = "none";
+        const status = document.getElementById("status");
+        status.style.display = "block";
+        status.innerHTML = "The browser blocked automatic local-file loading. Use <strong>Select CSV</strong> and choose <code>corpus.csv</code>, or open the site through a local web server.";
+      });
+  </script>
+</body>
+</html>
